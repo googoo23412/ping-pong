@@ -10,6 +10,11 @@ clock = time.Clock()
 window = display.set_mode((700, 500))
 display.set_caption("ping-pong")
 
+speed_x = 5
+speed_y = 5
+
+score_p1 = 0
+score_p2 = 0
 
 class GameSprite(sprite.Sprite):
     def __init__(self,player_image,player_x,player_y,player_speed,player_height,player_width):
@@ -28,20 +33,23 @@ class PlayerOne(GameSprite):
     def update(self):
         keys_pressed = key.get_pressed()
 
-        if keys_pressed[K_w] and self.rect.y < 5:
+        if keys_pressed[K_UP] and self.rect.y > 5:
             self.rect.y -= self.speed
 
-        if keys_pressed[K_s] and self.rect.y > 490:
+        if keys_pressed[K_DOWN] and self.rect.y < 410:
             self.rect.y += self.speed
+        window.blit(self.image, (self.rect.x, self.rect.y))
 
-# class Enemy(GameSprite):
-#     def update(self):
-#         self.rect.y += self.speed
-#         global lost
-#         if self.rect.y > 500:
-#             self.rect.y = 0
-#             self.rect.x = randint(10,590)
-#             lost = lost + 1
+class PlayerTwo(GameSprite):
+    def update(self):
+        keys_pressed = key.get_pressed()
+
+        if keys_pressed[K_w] and self.rect.y > 5:
+            self.rect.y -= self.speed
+
+        if keys_pressed[K_s] and self.rect.y < 410:
+            self.rect.y += self.speed
+        window.blit(self.image, (self.rect.x, self.rect.y))
 
 # class Asteroid(GameSprite):
 #     def update(self):
@@ -56,17 +64,37 @@ class PlayerOne(GameSprite):
 #         if self.rect.y < 0:
 #             self.kill() 
 
-ping = PlayerOne('pling.png',50,250,3,100,20)
-pong = GameSprite('pling.png',625,250,5.5,100,20)
+
+pong = PlayerOne('pling.png',625,250,5,100,20)
+ping = PlayerTwo('pling.png',50,250,5,100,20)
 ball = GameSprite('ballin.png',300,250,2,50,50)
 
 background = transform.scale(image.load("blue.png"),(700,500))
 
 while game == True:
+    for e in event.get():
+        if e.type == QUIT:
+            game = False
 
-    ping.reset()
-    pong.reset()
+    window.blit(background, (0,0))
+    ping.update()
+    pong.update()
     ball.reset()
+    ball.rect.x += speed_x
+    ball.rect.y += speed_y
+    if ball.rect.y < 0 or ball.rect.y > 450:
+        speed_y *= -1
+    if ball.rect.x > 650:
+        speed_x *= -1
+        score_p2 += 1
+    if ball.rect.x < 0:
+        speed_x *= -1
+        score_p1 += 1
+    if ball.rect.colliderect(ping.rect):
+        speed_x *= -1
+        
+    if ball.rect.colliderect(pong.rect):
+        speed_x *= -1
 
     clock.tick(FPS)
     display.update()
